@@ -3,14 +3,16 @@ const math = std.math;
 const debug = std.debug;
 
 fn isPrime(x: u64) bool {
-    const root = math.sqrt(x);
-
     if (x <= 2) return true;
 
-    for (2..u64(root)) |num| {
-        if (x % num == 0) return false;
-    }
+    var i: u64 = 2;
 
+    while (i < x) {
+        if (x % i == 0) {
+            return false;
+        }
+        i += 1;
+    }
     return true;
 }
 
