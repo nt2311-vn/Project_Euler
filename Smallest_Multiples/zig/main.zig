@@ -3,28 +3,26 @@ const math = std.math;
 const debug = std.debug;
 
 fn isPrime(x: u64) bool {
-    if (x <= 2) return true;
+    if (x < 2) return false;
+    if (x == 2) return true;
 
     var i: u64 = 2;
-
-    while (i < x) {
+    while (i * i <= x) : (i += 1) {
         if (x % i == 0) {
             return false;
         }
-        i += 1;
     }
     return true;
 }
 
 fn findPrimeFactor(x: u64, alloc: std.mem.Allocator) !std.ArrayList(u64) {
     var prime_factor = std.ArrayList(u64).init(alloc);
-    defer prime_factor.deinit();
 
-    if (x <= 2) {
+    if (x < 2) {
         return prime_factor;
     }
 
-    for (2..x) |i| {
+    for (2..x + 1) |i| {
         if (isPrime(i) and x % i == 0) {
             try prime_factor.append(i);
         }
@@ -35,17 +33,18 @@ fn findPrimeFactor(x: u64, alloc: std.mem.Allocator) !std.ArrayList(u64) {
 
 fn toPrimeFactor(x: u64, alloc: std.mem.Allocator) !std.AutoHashMap(u64, u64) {
     var factor_map = std.AutoHashMap(u64, u64).init(alloc);
-    defer factor_map.deinit();
 
     var num = x;
     const prime_factor = try findPrimeFactor(x, alloc);
     defer prime_factor.deinit();
 
     for (prime_factor.items) |factor| {
+        var count: u64 = 0;
         while (num % factor == 0) {
-            try factor_map.put(factor, factor_map.get(factor).? + 1);
+            count += 1;
             num /= factor;
         }
+        try factor_map.put(factor, count);
     }
 
     return factor_map;
@@ -53,7 +52,6 @@ fn toPrimeFactor(x: u64, alloc: std.mem.Allocator) !std.AutoHashMap(u64, u64) {
 
 pub fn main() !void {
     const allocator = std.heap.page_allocator;
-
     var prime_map = std.AutoHashMap(u64, u64).init(allocator);
     defer prime_map.deinit();
 
@@ -73,11 +71,9 @@ pub fn main() !void {
         defer factor_nonprime.deinit();
 
         var it = factor_nonprime.iterator();
-
         while (it.next()) |entry| {
             const key = entry.key_ptr.*;
             const value = entry.value_ptr.*;
-
             const current_val = prime_map.get(key) orelse 0;
 
             if (current_val < value) {
@@ -88,13 +84,11 @@ pub fn main() !void {
 
     var smallest: u64 = 1;
     var it = prime_map.iterator();
-
     while (it.next()) |entry| {
         const prime = entry.key_ptr.*;
         const exponent = entry.value_ptr.*;
-
         smallest *= math.pow(u64, prime, exponent);
     }
 
-    debug.print("Smallest: {d}", .{smallest});
+    debug.print("Smallest: {d}\n", .{smallest});
 }
