@@ -16,6 +16,7 @@ pub fn main() !void {
 
             if (isSpecialTriplet(a, b, c)) {
                 debug.print("Found special tripler a: {d}, b: {d}, c: {d}\n", .{ a, b, c });
+                debug.print("Result: {d}", .{a * b * c});
                 break;
             }
         }
